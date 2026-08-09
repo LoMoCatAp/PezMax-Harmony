@@ -1,0 +1,7 @@
+{
+  "layered-image":
+  {
+    "background": "$media:icon_background",
+    "foreground": "$media:pezmax_app_icon"
+  }
+}

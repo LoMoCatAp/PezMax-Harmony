@@ -1,0 +1,42 @@
+# HarmonyOS / DevEco Studio generated outputs
+.cache/
+.hvigor/
+.idea/
+build/
+entry/build/
+release/
+releases/
+dist/
+output/
+outputs/
+**/release/
+**/build/
+*.hap
+*.app
+*.har
+*.hsp
+
+# Local signing material and machine-specific configuration
+build-profile.json5
+**/build-profile.json5
+*.local.json5
+*.private.json5
+*.secrets.json5
+*.cer
+*.jks
+*.keystore
+*.key
+*.p12
+*.pem
+*.pfx
+local.properties
+
+# General local files
+.DS_Store
+Thumbs.db
+*.log
+
+# Local editor and device files
+.vscode/
+.fleet/
+*.trace
