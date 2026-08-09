@@ -1,4 +1,4 @@
-import { common, wantConstant } from '@kit.AbilityKit';
+import { common, wantConstant, ConfigurationConstant } from '@kit.AbilityKit';
 import { promptAction } from '@kit.ArkUI';
 import { request } from '@kit.BasicServicesKit';
 import { fileUri } from '@kit.CoreFileKit';
@@ -129,8 +129,14 @@ function absoluteUrl(value: string): string {
   return url.length > 0 ? `https://${url}` : '';
 }
 
+function appearanceBackground(colorMode: string, systemColorMode: string): ResourceColor {
+  const dark: boolean = colorMode === 'dark' || (colorMode === 'system' && systemColorMode === 'dark');
+  return dark ? '#10131A' : '#F7F8FC';
+}
+
 @Component
 export struct PezMaxHomeView {
+  @Prop themeRevision: number = 0;
   @State private userName: string = '';
   @State private bookmarkCount: number = 0;
   @State private fileCount: number = 0;
@@ -143,6 +149,8 @@ export struct PezMaxHomeView {
   @StorageLink('pezmax_active_tab') @Watch('onTabChanged') private activeTab: number = 0;
   @StorageLink('pezmax_session_revision') @Watch('onSessionChanged') private sessionRevision: number = 0;
   @StorageLink('appearance_accent_color') private accentColor: string = '#3559D8';
+  @StorageLink('appearance_color_mode') private colorMode: string = 'system';
+  @StorageLink('system_color_mode') private systemColorMode: string = 'light';
   private refreshing: boolean = false;
   private lastRefreshAt: number = 0;
 
@@ -192,6 +200,12 @@ export struct PezMaxHomeView {
       this.refreshing = false;
       this.sync();
     }
+  }
+
+  private pageBackground(): ResourceColor {
+    return this.themeRevision >= 0
+      ? appearanceBackground(this.colorMode, this.systemColorMode)
+      : appearanceBackground(this.colorMode, this.systemColorMode);
   }
 
   @Builder
@@ -275,12 +289,13 @@ export struct PezMaxHomeView {
       .layoutWeight(1).width('100%').scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true });
     }
-    .width('100%').height('100%');
+    .width('100%').height('100%').backgroundColor(this.pageBackground());
   }
 }
 
 @Component
 export struct PezMaxResourcesView {
+  @Prop themeRevision: number = 0;
   @State private keyword: string = '';
   @State private files: PezMaxFile[] = [];
   @State private favoriteFiles: PezMaxFile[] = [];
@@ -302,6 +317,8 @@ export struct PezMaxResourcesView {
   @StorageLink('pezmax_resource_folder_depth') private resourceFolderDepth: number = 0;
   @StorageLink('pezmax_resource_back_revision') @Watch('onResourceBackRequested') private resourceBackRevision: number = 0;
   @StorageLink('appearance_accent_color') private accentColor: string = '#3559D8';
+  @StorageLink('appearance_color_mode') private colorMode: string = 'system';
+  @StorageLink('system_color_mode') private systemColorMode: string = 'light';
   private readonly pageSize: number = 8;
   private refreshing: boolean = false;
   private lastRefreshAt: number = 0;
@@ -319,6 +336,12 @@ export struct PezMaxResourcesView {
     const depth: number = this.activeTab === 1 && this.mode === ResourceMode.All ? this.folderPath.length : 0;
     this.resourceFolderDepth = depth;
     AppStorage.set('pezmax_resource_folder_depth', depth);
+  }
+
+  private pageBackground(): ResourceColor {
+    return this.themeRevision >= 0
+      ? appearanceBackground(this.colorMode, this.systemColorMode)
+      : appearanceBackground(this.colorMode, this.systemColorMode);
   }
 
   private onTabChanged(): void {
@@ -754,12 +777,13 @@ export struct PezMaxResourcesView {
   }
 
   build() {
-    Column() { this.resourcesPage(); }.width('100%').height('100%');
+    Column() { this.resourcesPage(); }.width('100%').height('100%').backgroundColor(this.pageBackground());
   }
 }
 
 @Component
 export struct PezMaxBookmarksView {
+  @Prop themeRevision: number = 0;
   @State private keyword: string = '';
   @State private bookmarks: PezMaxBookmark[] = [];
   @State private userName: string = '';
@@ -779,6 +803,8 @@ export struct PezMaxBookmarksView {
   @StorageLink('pezmax_active_tab') @Watch('onTabChanged') private activeTab: number = 0;
   @StorageLink('pezmax_session_revision') @Watch('onSessionChanged') private sessionRevision: number = 0;
   @StorageLink('appearance_accent_color') private accentColor: string = '#3559D8';
+  @StorageLink('appearance_color_mode') private colorMode: string = 'system';
+  @StorageLink('system_color_mode') private systemColorMode: string = 'light';
   private readonly pageSize: number = 8;
   private refreshing: boolean = false;
   private lastRefreshAt: number = 0;
@@ -804,6 +830,12 @@ export struct PezMaxBookmarksView {
     this.total = state.bookmarkTotal;
     this.loading = this.refreshing || state.loading;
     this.errorMessage = state.errorMessage;
+  }
+
+  private pageBackground(): ResourceColor {
+    return this.themeRevision >= 0
+      ? appearanceBackground(this.colorMode, this.systemColorMode)
+      : appearanceBackground(this.colorMode, this.systemColorMode);
   }
 
   private async refresh(force: boolean): Promise<void> {
@@ -1010,12 +1042,13 @@ export struct PezMaxBookmarksView {
       .layoutWeight(1).width('100%').scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true });
     }
-    .width('100%').height('100%');
+    .width('100%').height('100%').backgroundColor(this.pageBackground());
   }
 }
 
 @Component
 export struct PezMaxProfileView {
+  @Prop themeRevision: number = 0;
   @State private username: string = '';
   @State private password: string = '';
   @State private confirmPassword: string = '';
@@ -1076,6 +1109,11 @@ export struct PezMaxProfileView {
 
   aboutToAppear(): void {
     this.sync();
+    if (this.settingsOpen && this.subpage === 'profile') {
+      setTimeout((): void => {
+        if (this.settingsOpen && this.subpage === 'profile') this.openSubpage('settings');
+      }, 0);
+    }
     if (this.userName.length === 0 && this.storeReady) void this.refreshCaptcha();
     if (this.userName.length > 0) void this.refreshUploadRank(false);
   }
@@ -1331,12 +1369,26 @@ export struct PezMaxProfileView {
   private selectColorMode(index: number): void {
     const option: AppearanceOption | undefined = COLOR_MODE_OPTIONS[index];
     if (option === undefined) return;
-    animateTo({ duration: 220, curve: Curve.EaseOut }, (): void => {
-      this.colorMode = option.value;
-      AppStorage.set('appearance_color_mode', option.value);
-    });
+    // Update the shared mode before local rendering so every page and material modifier
+    // resolves the same palette during the next frame.
+    AppStorage.setOrCreate('appearance_color_mode', option.value);
+    AppStorage.set('appearance_color_mode', option.value);
+    const revision: number = Number(AppStorage.get('appearance_revision') ?? 0) + 1;
+    AppStorage.setOrCreate('appearance_revision', revision);
+    AppStorage.set('appearance_revision', revision);
+    this.colorMode = option.value;
     AppStore.saveAppearance('color_mode', option.value);
+    this.applyAbilityColorMode(option.value);
     SystemBarAppearance.apply(option.value);
+  }
+
+  private applyAbilityColorMode(mode: string): void {
+    try {
+      const context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+      if (mode === 'dark') context.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK);
+      else if (mode === 'light') context.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
+      else context.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    } catch (_) {}
   }
 
   private selectAccent(option: AppearanceOption): void {
@@ -1621,9 +1673,9 @@ export struct PezMaxProfileView {
   }
 
   private subpageBackground(): ResourceColor {
-    const dark: boolean = this.colorMode === 'dark' ||
-      (this.colorMode === 'system' && this.systemColorMode === 'dark');
-    return dark ? '#10131A' : '#F7F8FC';
+    return this.themeRevision >= 0
+      ? appearanceBackground(this.colorMode, this.systemColorMode)
+      : appearanceBackground(this.colorMode, this.systemColorMode);
   }
 
   @Builder
@@ -1647,7 +1699,7 @@ export struct PezMaxProfileView {
     .onBackPressed((): boolean => false)
     .onHidden((): void => { this.onSubpageHidden(page); })
     .backgroundColor(this.subpageBackground())
-    .width('100%').height('100%');
+    .width('100%').height('100%').backgroundColor(this.subpageBackground());
   }
 
   @Builder
@@ -2164,13 +2216,13 @@ export struct PezMaxProfileView {
 
   build() {
     HdsNavigation(this.pageStack) {
-      Column() { this.profilePage(); }.width('100%').height('100%');
+      Column() { this.profilePage(); }.width('100%').height('100%').backgroundColor(this.subpageBackground());
     }
     .mode(NavigationMode.Stack)
     .hideTitleBar(true)
     .hideToolBar(true)
     .navDestination(this.subpageDestination)
-    .width('100%').height('100%')
+    .width('100%').height('100%').backgroundColor(this.subpageBackground())
     .bindSheet($$this.showAboutSheet, this.aboutSheet(), {
       detents: [SheetSize.FIT_CONTENT],
       preferType: SheetType.BOTTOM,

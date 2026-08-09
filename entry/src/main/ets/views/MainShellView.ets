@@ -1,5 +1,6 @@
 import { DividerMode, HdsAnimationMode, HdsTabs, HdsTabsController, hdsMaterial } from '@kit.UIDesignKit';
 import { supportsHdsImmersiveMaterial } from '../common/CompatibleMaterial';
+import { THEME_TOKENS } from '../common/ThemeTokens';
 import { MainNavigation } from '../components/MainNavigation';
 import { MaterialLevel, NavigationIntent, NavigationSource, ShellTab } from '../model/ShellModels';
 import {
@@ -16,6 +17,7 @@ export struct MainShellView {
   @StorageLink('appearance_accent_color') private accentColor: string = '#3559D8';
   @StorageLink('appearance_color_mode') private colorMode: string = 'system';
   @StorageLink('system_color_mode') private systemColorMode: string = 'light';
+  @StorageLink('appearance_revision') private appearanceRevision: number = 0;
   @StorageLink('appearance_material_level') private materialLevel: string = MaterialLevel.Gentle;
   @StorageLink('pezmax_settings_open') @Watch('onSettingsVisibilityChanged') private settingsOpen: boolean = false;
   @StorageLink('pezmax_navigation_target') private navigationTarget: number = 0;
@@ -23,6 +25,8 @@ export struct MainShellView {
   private tabsController: HdsTabsController | undefined = undefined;
 
   aboutToAppear(): void {
+    const savedTab: number = Number(AppStorage.get('pezmax_active_tab') ?? ShellTab.Chat);
+    if (savedTab >= ShellTab.Chat && savedTab <= ShellTab.My) this.selectedTab = savedTab as ShellTab;
     if (supportsHdsImmersiveMaterial()) {
       try {
         this.tabsController = new HdsTabsController();
@@ -35,6 +39,10 @@ export struct MainShellView {
       this.officialMaterial = false;
     }
     this.publishSelectedTab(this.selectedTab);
+    if (this.officialMaterial && this.tabsController !== undefined && this.selectedTab !== ShellTab.Chat) {
+      const controller: HdsTabsController = this.tabsController;
+      setTimeout((): void => { controller.changeIndex(this.selectedTab); }, 0);
+    }
   }
 
   private publishSelectedTab(tab: ShellTab): void {
@@ -83,19 +91,19 @@ export struct MainShellView {
     Column({ space: 2 }) {
       if (tab === ShellTab.Chat) {
         Image($r('app.media.nav_home')).width(20).height(20)
-          .fillColor(this.selectedTab === tab ? this.accentColor : $r('app.color.text_secondary'));
+          .fillColor(this.selectedTab === tab ? this.accentColor : THEME_TOKENS.secondaryText);
       } else if (tab === ShellTab.History) {
         Image($r('app.media.nav_resources')).width(20).height(20)
-          .fillColor(this.selectedTab === tab ? this.accentColor : $r('app.color.text_secondary'));
+          .fillColor(this.selectedTab === tab ? this.accentColor : THEME_TOKENS.secondaryText);
       } else if (tab === ShellTab.Providers) {
         Image($r('app.media.nav_bookmark')).width(20).height(20)
-          .fillColor(this.selectedTab === tab ? this.accentColor : $r('app.color.text_secondary'));
+          .fillColor(this.selectedTab === tab ? this.accentColor : THEME_TOKENS.secondaryText);
       } else {
         Image($r('app.media.nav_profile')).width(20).height(20)
-          .fillColor(this.selectedTab === tab ? this.accentColor : $r('app.color.text_secondary'));
+          .fillColor(this.selectedTab === tab ? this.accentColor : THEME_TOKENS.secondaryText);
       }
       Text(label).fontSize(12)
-        .fontColor(this.selectedTab === tab ? this.accentColor : $r('app.color.text_secondary'));
+        .fontColor(this.selectedTab === tab ? this.accentColor : THEME_TOKENS.secondaryText);
     }
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
@@ -106,10 +114,10 @@ export struct MainShellView {
   @Builder
   private hdsContent(controller: HdsTabsController): void {
     HdsTabs({ controller }) {
-      TabContent() { PezMaxHomeView() }.tabBar(this.tabLabel('首页', ShellTab.Chat));
-      TabContent() { PezMaxResourcesView() }.tabBar(this.tabLabel('资料', ShellTab.History));
-      TabContent() { PezMaxBookmarksView() }.tabBar(this.tabLabel('书签', ShellTab.Providers));
-      TabContent() { PezMaxProfileView() }.tabBar(this.tabLabel('我的', ShellTab.My));
+      TabContent() { PezMaxHomeView({ themeRevision: this.appearanceRevision }) }.tabBar(this.tabLabel('首页', ShellTab.Chat));
+      TabContent() { PezMaxResourcesView({ themeRevision: this.appearanceRevision }) }.tabBar(this.tabLabel('资料', ShellTab.History));
+      TabContent() { PezMaxBookmarksView({ themeRevision: this.appearanceRevision }) }.tabBar(this.tabLabel('书签', ShellTab.Providers));
+      TabContent() { PezMaxProfileView({ themeRevision: this.appearanceRevision }) }.tabBar(this.tabLabel('我的', ShellTab.My));
     }
     .barOverlap(true)
     .animationDuration(0)
@@ -137,13 +145,13 @@ export struct MainShellView {
       } else {
         Column() {
           if (this.selectedTab === ShellTab.Chat) {
-            PezMaxHomeView();
+            PezMaxHomeView({ themeRevision: this.appearanceRevision });
           } else if (this.selectedTab === ShellTab.History) {
-            PezMaxResourcesView();
+            PezMaxResourcesView({ themeRevision: this.appearanceRevision });
           } else if (this.selectedTab === ShellTab.Providers) {
-            PezMaxBookmarksView();
+            PezMaxBookmarksView({ themeRevision: this.appearanceRevision });
           } else {
-            PezMaxProfileView();
+            PezMaxProfileView({ themeRevision: this.appearanceRevision });
           }
         }.layoutWeight(1).width('100%');
         if (!this.settingsOpen) {

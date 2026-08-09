@@ -5,6 +5,8 @@ import { THEME_TOKENS } from '../common/ThemeTokens';
 export struct MainNavigation {
   @Prop selectedTab: ShellTab = ShellTab.Chat;
   @StorageLink('appearance_accent_color') private appearanceAccentColor: string = '#3559D8';
+  @StorageLink('appearance_color_mode') private colorMode: string = 'system';
+  @StorageLink('system_color_mode') private systemColorMode: string = 'light';
   onSelect: (intent: NavigationIntent) => void = (_intent: NavigationIntent): void => {};
 
   @Builder
@@ -35,7 +37,7 @@ export struct MainNavigation {
     .margin({ left: 12, right: 12, bottom: 8 })
     .padding({ left: 8, right: 8, top: 2, bottom: 2 })
     .borderRadius(24)
-    .backgroundColor($r('app.color.surface'))
-    .border({ width: 1, color: $r('app.color.surface_outline') });
+    .backgroundColor(THEME_TOKENS.surface)
+    .border({ width: 1, color: THEME_TOKENS.surfaceOutline });
   }
 }

@@ -22,19 +22,18 @@ export class CompatibleMaterialModifier extends CommonModifier {
   private readonly accentColor: string;
   private readonly applyShadow: boolean;
   private readonly transparentBackground: boolean;
-  private readonly darkMode: boolean;
 
   constructor(accentColor: string, applyShadow: boolean = false, transparentBackground: boolean = false) {
     super();
     this.accentColor = accentColor;
     this.applyShadow = applyShadow;
     this.transparentBackground = transparentBackground;
-    this.darkMode = activeDarkMode();
   }
 
   applyNormalAttribute(instance: CommonAttribute): void {
+    const darkMode: boolean = activeDarkMode();
     if (!supportsComponentImmersiveMaterial()) {
-      instance.backgroundColor(this.transparentBackground ? Color.Transparent : (this.darkMode ? '#1B2029' : '#FFFFFF'));
+      instance.backgroundColor(this.transparentBackground ? Color.Transparent : (darkMode ? '#1B2029' : '#FFFFFF'));
       if (supportsHdsImmersiveMaterial()) {
         const effect: VisualEffect = new hdsEffect.HdsEffectBuilder()
           .pressShadow(hdsEffect.PressShadowType.BLEND_GRADIENT)
@@ -47,14 +46,14 @@ export class CompatibleMaterialModifier extends CommonModifier {
         instance.visualEffect(effect);
       }
       if (this.applyShadow) {
-        instance.border({ width: 1, color: this.darkMode ? '#343B48' : '#DDE2EC' });
-        instance.shadow({ radius: 10, color: this.darkMode ? '#52000000' : '#14000000', offsetY: 2 });
+        instance.border({ width: 1, color: darkMode ? '#343B48' : '#DDE2EC' });
+        instance.shadow({ radius: 10, color: darkMode ? '#52000000' : '#14000000', offsetY: 2 });
       }
       return;
     }
     instance.systemMaterial(new uiMaterial.ImmersiveMaterial({
       style: uiMaterial.ImmersiveStyle.THIN,
-      materialColor: this.applyShadow ? (this.darkMode ? '#1B2029' : '#FFFFFF') : Color.Transparent,
+      materialColor: this.applyShadow ? (darkMode ? '#1B2029' : '#FFFFFF') : Color.Transparent,
       applyShadow: false,
       interactive: true,
       lightEffect: { color: this.accentColor }

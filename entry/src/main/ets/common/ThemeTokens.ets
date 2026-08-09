@@ -29,21 +29,32 @@ export interface ThemeTokenSet {
   feedbackDuration: number;
 }
 
+function isDarkAppearance(): boolean {
+  const mode: string = String(AppStorage.get('appearance_color_mode') ?? 'system');
+  if (mode === 'dark') return true;
+  if (mode === 'light') return false;
+  return String(AppStorage.get('system_color_mode') ?? 'light') === 'dark';
+}
+
+function appearanceColor(light: string, dark: string): ResourceColor {
+  return isDarkAppearance() ? dark : light;
+}
+
 export const THEME_TOKENS: ThemeTokenSet = {
   pagePadding: 16,
   cardRadius: 18,
   compactWidth: 600,
   tabletWidth: 900,
   contentMaxWidth: 920,
-  pageBackground: $r('app.color.app_background'),
-  surface: $r('app.color.surface'),
-  surfaceOutline: $r('app.color.surface_outline'),
-  primary: $r('app.color.primary'),
-  primaryText: $r('app.color.text_primary'),
-  secondaryText: $r('app.color.text_secondary'),
-  danger: $r('app.color.danger'),
-  success: $r('app.color.success'),
-  warning: $r('app.color.warning'),
+  get pageBackground(): ResourceColor { return appearanceColor('#F7F8FC', '#10131A'); },
+  get surface(): ResourceColor { return appearanceColor('#FFFFFF', '#1B2029'); },
+  get surfaceOutline(): ResourceColor { return appearanceColor('#DDE2EC', '#343B48'); },
+  get primary(): ResourceColor { return appearanceColor('#3559D8', '#9CB2FF'); },
+  get primaryText(): ResourceColor { return appearanceColor('#172033', '#F1F4FA'); },
+  get secondaryText(): ResourceColor { return appearanceColor('#667085', '#B1BACB'); },
+  get danger(): ResourceColor { return appearanceColor('#C62828', '#FFB4AB'); },
+  get success(): ResourceColor { return appearanceColor('#18794E', '#75D9AA'); },
+  get warning(): ResourceColor { return appearanceColor('#946200', '#FFD166'); },
   touchTarget: 48,
   fieldGap: 10,
   safeAreaPadding: 16,

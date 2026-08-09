@@ -1,7 +1,6 @@
 import { MainShellView } from '../views/MainShellView';
 import { THEME_TOKENS, pagePaddingFor } from '../common/ThemeTokens';
 import { AppStore } from '../common/AppStore';
-import { CustomTheme } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -21,6 +20,7 @@ struct Index {
     AppStorage.setOrCreate('appearance_accent_color', '#3559D8');
     AppStorage.setOrCreate('appearance_material_level', 'GENTLE');
     AppStorage.setOrCreate('system_color_mode', 'light');
+    AppStorage.setOrCreate('appearance_revision', 0);
     AppStorage.setOrCreate('pezmax_active_tab', 0);
     AppStorage.setOrCreate('pezmax_navigation_target', 0);
     AppStorage.setOrCreate('pezmax_navigation_revision', 0);
@@ -43,19 +43,10 @@ struct Index {
     AppStorage.set('appearance_material_level', material);
   }
 
-  private activeColorMode(): ThemeColorMode {
-    if (this.appearanceColorMode === 'dark') return ThemeColorMode.DARK;
-    if (this.appearanceColorMode === 'light') return ThemeColorMode.LIGHT;
-    return this.systemColorMode === 'dark' ? ThemeColorMode.DARK : ThemeColorMode.LIGHT;
-  }
-
-  private theme(): CustomTheme {
-    return { colors: { brand: this.appearanceAccentColor, iconEmphasize: this.appearanceAccentColor,
-      interactiveFocus: this.appearanceAccentColor, interactiveActive: this.appearanceAccentColor } };
-  }
-
   private pageBackground(): ResourceColor {
-    return this.activeColorMode() === ThemeColorMode.DARK ? '#10131A' : '#F7F8FC';
+    const dark: boolean = this.appearanceColorMode === 'dark' ||
+      (this.appearanceColorMode === 'system' && this.systemColorMode === 'dark');
+    return dark ? '#10131A' : '#F7F8FC';
   }
 
   onBackPress(): boolean {
@@ -76,7 +67,6 @@ struct Index {
   }
 
   build() {
-    WithTheme({ colorMode: this.activeColorMode(), theme: this.theme() }) {
     Column() {
       MainShellView().layoutWeight(1);
     }
@@ -91,6 +81,5 @@ struct Index {
         this.publishPagePadding(nextWidth);
       }
     });
-    }
   }
 }
